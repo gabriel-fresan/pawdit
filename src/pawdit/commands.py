@@ -125,7 +125,7 @@ def show_overview(cfg, run, fs, a):
             write_run(os.path.realpath(paths(cfg)["latest"]), run, fs)
     parts = ["# pawdit · soluções\n"]
     for f in shown:
-        parts.append(f"### #{f['n']} · {SEV[f['sev']]} · {f['title']}\n\n{fix_steps(f)}\n")
+        parts.append(f"### #{f['n']} · {SEV[f['sev']].upper()} · {f['title']}\n\n{fix_steps(f)}\n")
     if len(fs) > len(shown):
         parts.append(f"_… mais {len(fs) - len(shown)} achados (use `--max`)._\n")
     parts.append("---\n_Detalhe completo: `pawdit fix N`_")
@@ -140,13 +140,19 @@ def cmd_diff(cfg, a):
     for f in fs:
         if f.get("new"):
             print(
-                paint("31", "+ ")
-                + f"#{f['n']} [{SEV[f['sev']]}] {f['tool']}/{f['id']} — {trunc(f['title'], term_width() - 30)}"
+                paint("1;31", "+ ")
+                + paint(SEV_COLOR[f["sev"]], f"#{f['n']} {SEV[f['sev']]:<7}")
+                + paint("2", f" {f['tool']}/{f['id']} ")
+                + trunc(f["title"], term_width() - 36)
             )
     for r in run.get("resolved", []):
-        print(paint("32", "- ") + f"{r['tool']}/{r['id']} — {trunc(r['title'], term_width() - 25)}")
+        print(
+            paint("1;32", "- ")
+            + paint("2;9", f"{r['tool']}/{r['id']}")
+            + paint("32", f" resolvido · {trunc(r['title'], term_width() - 30)}")
+        )
     if not any(f.get("new") for f in fs) and not run.get("resolved"):
-        print("sem mudanças desde a última auditoria")
+        print(paint("32", "✓ sem mudanças desde a última auditoria"))
 
 
 def cmd_history(cfg, a):
@@ -155,14 +161,24 @@ def cmd_history(cfg, a):
         names = sorted(os.listdir(P["hist"]))
     except OSError:
         die("sem histórico (ou sem permissão)")
-    print(f"{'data':<17} {'score':>5}  crit alto méd baixo  novos")
+    print(paint("1;36", f"{'data':<17} {'score':>5}  crit alto méd baixo  novos"))
     for n in names[-a.n :]:
         r = jload(os.path.join(P["hist"], n, "run.json"))
         if r:
             c = r["counts"]
             sc = "-" if r.get("score") is None else r["score"]
+            scp = paint(
+                "32" if isinstance(sc, int) and sc >= 80 else "33" if isinstance(sc, int) and sc >= 60 else "31",
+                f"{sc:>5}",
+            )
+            cols = [
+                paint(SEV_COLOR[s] if c[str(s)] else "2", f"{c[str(s)]:>{w}}")
+                for s, w in ((4, 4), (3, 4), (2, 3), (1, 5))
+            ]
+            nc = r.get("new_count", "-")
             print(
-                f"{r['ts'][:16].replace('T', ' '):<17} {sc:>5}  {c['4']:>4} {c['3']:>4} {c['2']:>3} {c['1']:>5}  {r.get('new_count', '-'):>5}"
+                f"{r['ts'][:16].replace('T', ' '):<17} {scp}  {' '.join(cols)}  "
+                + paint("1;33" if nc not in (0, "-") else "2", f"{nc:>5}")
             )
 
 
@@ -182,24 +198,30 @@ def cmd_raw(cfg, a):
 def cmd_doctor(cfg, a):
     import urllib.request
 
-    print(f"pawdit {__version__} · python {sys.version.split()[0]} · {os_info()['name']} ({os_info()['kind']})")
-    for t in ("lynis", "ssh-audit", "aide", "chkrootkit", "vulnix", "trivy", "aureport", "bat"):
+    print(
+        paint("1;35", f"pawdit {__version__}")
+        + f" >:3 python {sys.version.split()[0]} · {os_info()['name']} ({os_info()['kind']})"
+    )
+    for t in ("lynis", "ssh-audit", "aide", "chkrootkit", "vulnix", "trivy", "aureport", "docker", "podman"):
         p = shutil.which(t)
-        print(f"  {'✓' if p else '·'} {t:<11} {p or 'não encontrado (coletor será ignorado)'}")
+        print(
+            f"  {paint('32', '✓') if p else paint('2', '·')} {t:<11} "
+            + (paint("2", p) if p else paint("33", "não encontrado (coletor será ignorado)"))
+        )
     try:
         with urllib.request.urlopen(cfg["ollama_url"].rstrip("/") + "/api/tags", timeout=5) as r:
             names = [m["name"] for m in json.load(r).get("models", [])]
         ok = cfg["model"] in names or cfg["model"] + ":latest" in names
         print(
-            f"  {'✓' if ok else '✗'} ollama {cfg['ollama_url']} — modelo {cfg['model']}"
+            f"  {paint('32', '✓') if ok else paint('1;31', '✗')} ollama {cfg['ollama_url']} — modelo {cfg['model']}"
             + ("" if ok else f"  → ollama pull {cfg['model']}")
         )
     except Exception as e:  # noqa: BLE001
-        print(f"  ✗ ollama {cfg['ollama_url']} inacessível ({one_line(e, 80)})")
+        print(f"  {paint('1;31', '✗')} ollama {cfg['ollama_url']} inacessível ({one_line(e, 80)})")
     g = resolve_group(cfg)
     if os.access(cfg["state_dir"], os.R_OK):
-        print(f"  ✓ estado {cfg['state_dir']} legível (grupo {g or '-'})")
+        print(f"  {paint('32', '✓')} estado {cfg['state_dir']} legível (grupo {g or '-'})")
     else:
         print(
-            f"  ✗ estado {cfg['state_dir']} sem acesso — adicione seu usuário ao grupo '{g or 'admin'}' (sudo usermod -aG {g or 'GRUPO'} $USER)"
+            f"  {paint('1;31', '✗')} estado {cfg['state_dir']} sem acesso — adicione seu usuário ao grupo '{g or 'admin'}' (sudo usermod -aG {g or 'GRUPO'} $USER)"
         )
