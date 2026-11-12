@@ -1,0 +1,13 @@
+# /etc/pawdit.toml — tudo é opcional; estes são os padrões.
+model = "qwen3:1.7b"              # qualquer modelo <2B do Ollama; troque e rode: sudo pawdit ai
+ollama_url = "http://127.0.0.1:11434"   # mantenha local: os achados vão no prompt
+ai_timeout = 900                  # segundos por chamada (CPU é lenta)
+max_ai_findings = 12              # quantos achados ganham "solução" gerada no run semanal
+state_dir = "/var/lib/pawdit"
+state_group = "wheel"             # quem lê os relatórios (0640)
+greet_width = 64                  # largura máxima do greeting do SSH
+stale_days = 10                   # avisa no login se a última auditoria é mais velha que isso
+expected_ports = [22]             # portas que podem ficar abertas p/ a rede sem virar achado
+ssh_audit_target = "127.0.0.1:22"
+history_keep = 26
+# tools = ["builtin", "lynis", "ssh-audit", "aide", "chkrootkit", "vulnix", "trivy", "auditd"]

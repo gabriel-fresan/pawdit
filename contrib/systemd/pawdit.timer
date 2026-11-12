@@ -1,0 +1,10 @@
+[Unit]
+Description=pawdit — roda toda semana
+
+[Timer]
+OnCalendar=Sun *-*-* 03:30
+Persistent=true
+RandomizedDelaySec=30min
+
+[Install]
+WantedBy=timers.target

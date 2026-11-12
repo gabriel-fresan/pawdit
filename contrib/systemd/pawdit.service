@@ -1,0 +1,13 @@
+[Unit]
+Description=pawdit — auditoria semanal de segurança
+After=network-online.target ollama.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/pawdit run
+# lynis via git clone em /usr/local/lynis (chown -R 0:0); ajuste o PATH se precisar
+Environment=PATH=/usr/local/lynis:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=3h
