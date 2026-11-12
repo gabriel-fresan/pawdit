@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pawdit"
+dynamic = ["version"]
+description = "Weekly Linux host audit with a small local LLM that only writes text"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = ["tomli>=2; python_version < '3.11'"]
+classifiers = [
+  "Environment :: Console",
+  "Intended Audience :: System Administrators",
+  "Operating System :: POSIX :: Linux",
+  "Topic :: System :: Systems Administration",
+  "Topic :: Security",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+
+[project.scripts]
+pawdit = "pawdit.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "pawdit.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
