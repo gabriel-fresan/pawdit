@@ -56,7 +56,7 @@ def cmd_report(cfg, a):
     P = paths(cfg)
     need_latest(cfg)
     with open(os.path.join(P["latest"], "report.md"), encoding="utf-8") as fh:
-        page(fh.read())
+        page(fh.read(), md=True)
 
 
 def cmd_list(cfg, a):
@@ -88,7 +88,7 @@ def show_fix(cfg, run, fs, f, gen):
             f["ai"] = gen_fix(cfg, run["os"], f)
         except Exception as e:  # noqa: BLE001
             print(f"IA indisponível: {one_line(e, 160)}", file=sys.stderr)
-    page(fmt_finding(f))
+    page(fmt_finding(f), md=True)
 
 
 def cmd_fix(cfg, a):

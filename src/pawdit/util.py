@@ -21,6 +21,10 @@ def set_color(on: bool) -> None:
 _CTRL = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]|\x1b[@-_]|[\x00-\x08\x0b-\x1f\x7f-\x9f\u202a-\u202e\u2066-\u2069]")
 
 
+def _COLOR_ON():
+    return _COLOR
+
+
 def paint(code, s):
     return f"\x1b[{code}m{s}\x1b[0m" if _COLOR else str(s)
 
@@ -109,13 +113,24 @@ def age_days(ts):
         return 0
 
 
-def page(text):
+def page(text, md=False):
+    """Print text, rendering Markdown (md=True) and using a pager on a tty."""
+    if md:
+        from .mdrender import render
+
+        text = render(text)
     if not sys.stdout.isatty():
         print(text)
         return
-    bat = shutil.which("bat")
-    cmd = [bat, "--language=md", "--style=plain", "--paging=auto"] if bat else [os.environ.get("PAGER", "less"), "-FRX"]
+    lines = text.count("\n") + 1
+    if lines < shutil.get_terminal_size((80, 24)).lines - 2:
+        print(text)
+        return
+    pager = shutil.which("less")
     try:
-        subprocess.run(cmd, input=text, text=True)
+        if pager:
+            subprocess.run([pager, "-RFX"], input=text, text=True)
+        else:
+            print(text)
     except OSError:
         print(text)
