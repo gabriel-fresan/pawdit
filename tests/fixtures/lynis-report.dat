@@ -1,0 +1,15 @@
+lynis_version=3.1.8
+hardening_index=61
+warning[]=PKGS-7392|Found one or more vulnerable packages.|-|-|
+warning[]=FIRE-4512|iptables module(s) loaded, but no rules active|-|-|
+warning[]=LOGG-2138|klogd is not running, which could lead to missing kernel messages in log files|-|-|
+suggestion[]=BOOT-5180|Determine runlevel and services at startup|-|-|
+suggestion[]=BOOT-5264|Consider hardening system services|Run '/usr/bin/systemd-analyze security SERVICE' for each service|-|
+suggestion[]=KRNL-5788|Determine why /vmlinuz or /boot/vmlinuz is missing on this Debian/Ubuntu system.|/vmlinuz or /boot/vmlinuz|-|
+suggestion[]=KRNL-5820|If not required, consider explicit disabling of core dump in /etc/security/limits.conf file|-|-|
+suggestion[]=PROC-3612|Check the output of ps for dead or zombie processes|-|-|
+suggestion[]=AUTH-9230|Configure password hashing rounds in /etc/login.defs|-|-|
+suggestion[]=AUTH-9262|Install a PAM module for password strength testing like pam_cracklib or pam_passwdqc or libpam-passwdqc|-|-|
+suggestion[]=AUTH-9284|Look at the locked accounts and consider removing them|-|-|
+suggestion[]=AUTH-9286|Configure minimum password age in /etc/login.defs|-|-|
+suggestion[]=AUTH-9286|Configure maximum password age in /etc/login.defs|-|-|
