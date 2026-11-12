@@ -73,8 +73,8 @@ def paths(cfg):
 def resolve_group(cfg):
     """Group allowed to read (and regenerate AI text in) the state dir. ``auto`` picks wheel or sudo."""
     want = cfg.get("state_group")
-    if want and want != "auto":
-        return want
+    if want != "auto":
+        return want or None
     try:
         import grp
     except ImportError:

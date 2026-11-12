@@ -14,6 +14,16 @@ def write_run(rdir, run, findings):
         fh.write(render_report(run, findings))
 
 
+def _chgrp(path, gid):
+    """Hand the path to the admin group; as a non-root member only the group can change (and may be refused)."""
+    if gid is None:
+        return
+    try:
+        os.chown(path, 0 if os.geteuid() == 0 else -1, gid)
+    except PermissionError:
+        pass
+
+
 def secure_tree(root, group):
     """State is group-accessible (rw): the group is the admin group (wheel/sudo), which already has root via sudo."""
     gid = None
@@ -30,11 +40,9 @@ def secure_tree(root, group):
             if os.path.islink(p):
                 continue
             os.chmod(p, 0o2770 if os.path.isdir(p) else 0o660)
-            if gid is not None:
-                os.chown(p, 0, gid)
+            _chgrp(p, gid)
     os.chmod(root, 0o2770)  # setgid: arquivos novos herdam o grupo
-    if gid is not None:
-        os.chown(root, 0, gid)
+    _chgrp(root, gid)
 
 
 def load_latest(cfg):
