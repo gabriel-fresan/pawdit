@@ -58,4 +58,4 @@ def test_first_run_and_stale_and_no_ai_notes():
 def test_face_depends_on_severity():
     calm = make_run(counts={"4": 0, "3": 0, "2": 0, "1": 2, "0": 0})
     assert "^.^" in render_greet(DEFAULTS, calm, [], 80)
-    assert ">:3" in render_greet(DEFAULTS, make_run(), FS, 80)
+    assert "°△°" in render_greet(DEFAULTS, make_run(), FS, 80)
