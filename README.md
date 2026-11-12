@@ -6,7 +6,7 @@ A weekly security audit for your Linux box that orchestrates the tools you alrea
 
 ```
  /\_/\  pawdit · home-server · 12/11 (hoje)
-( >:3 ) score 63 (+3) · 0 crit 3 alto 17 méd 119 baixo
+( °△° ) score 63 (+3) · 0 crit 3 alto 17 méd 119 baixo
  > ^ <  novos 5 (!2 altos) · resolvidos 4
 ia ▸ Alto risco por falta de sincronização de tempo e
       SSH com senha habilitada.
