@@ -7,7 +7,7 @@ Parsing lives in separate ``parse_*`` functions so it can be tested without the 
 
 from __future__ import annotations
 
-from . import aide, auditd, builtin, chkrootkit, lynis, ssh_audit, trivy, vulnix
+from . import aide, auditd, builtin, chkrootkit, docker, lynis, ssh_audit, trivy, vulnix
 
 COLLECTORS = {
     "builtin": builtin.collect,
@@ -18,4 +18,6 @@ COLLECTORS = {
     "vulnix": vulnix.collect,
     "trivy": trivy.collect,
     "auditd": auditd.collect,
+    "docker": docker.collect,
+    "docker-images": docker.collect_images,
 }

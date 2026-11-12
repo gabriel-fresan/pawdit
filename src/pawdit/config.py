@@ -26,7 +26,18 @@ DEFAULTS = {
     "greet_width": 64,
     "expected_ports": [22],  # portas esperadas abertas p/ a rede (builtin)
     "ssh_audit_target": "127.0.0.1:22",
-    "tools": ["builtin", "lynis", "ssh-audit", "aide", "chkrootkit", "vulnix", "trivy", "auditd"],
+    "tools": [
+        "builtin",
+        "lynis",
+        "ssh-audit",
+        "aide",
+        "chkrootkit",
+        "vulnix",
+        "trivy",
+        "auditd",
+        "docker",
+        "docker-images",
+    ],
 }
 
 
