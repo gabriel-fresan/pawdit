@@ -101,11 +101,16 @@ def test_group_resolution(monkeypatch):
 
     from pawdit.config import resolve_group
 
+    monkeypatch.setattr(grp, "getgrnam", lambda n: object())
     assert resolve_group({"state_group": "staff"}) == "staff"
     monkeypatch.setattr(grp, "getgrnam", lambda n: (_ for _ in ()).throw(KeyError(n)) if n == "wheel" else object())
     assert resolve_group({"state_group": "auto"}) == "sudo"  # Ubuntu has no wheel
     monkeypatch.setattr(grp, "getgrnam", lambda n: (_ for _ in ()).throw(KeyError(n)))
     assert resolve_group({"state_group": "auto"}) is None
+    # old config naming a group that does not exist (wheel on Ubuntu) must not leave the state root-only
+    monkeypatch.setattr(grp, "getgrnam", lambda n: (_ for _ in ()).throw(KeyError(n)) if n == "wheel" else object())
+    assert resolve_group({"state_group": "wheel"}) == "sudo"
+    assert resolve_group({"state_group": None}) is None
 
 
 def test_state_is_group_accessible_and_ai_runs_without_root(cfg, fake_collector, ollama, monkeypatch):

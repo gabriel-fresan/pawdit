@@ -71,18 +71,26 @@ def paths(cfg):
 
 
 def resolve_group(cfg):
-    """Group allowed to read (and regenerate AI text in) the state dir. ``auto`` picks wheel or sudo."""
-    want = cfg.get("state_group")
-    if want != "auto":
-        return want or None
+    """Group allowed to read (and regenerate AI text in) the state dir.
+
+    ``auto`` picks wheel or sudo. A configured group that does not exist (e.g. an old config with
+    ``wheel`` on Ubuntu) falls back to auto instead of silently leaving the state root-only.
+    """
     try:
         import grp
     except ImportError:
         return None
-    for name in ("wheel", "sudo"):
+
+    def exists(name):
         try:
             grp.getgrnam(name)
-            return name
+            return True
         except KeyError:
-            continue
-    return None
+            return False
+
+    want = cfg.get("state_group")
+    if want is None:
+        return None
+    if want != "auto" and exists(want):
+        return want
+    return next((n for n in ("wheel", "sudo") if exists(n)), None)

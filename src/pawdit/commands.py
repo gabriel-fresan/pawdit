@@ -45,8 +45,9 @@ def cmd_greet(cfg, a):
             return
         run, fs = load_latest(cfg)
         if not run:
+            P = paths(cfg)
             if os.path.isdir(cfg["state_dir"]):
-                if os.access(cfg["state_dir"], os.R_OK):
+                if os.access(cfg["state_dir"], os.R_OK) and not os.path.lexists(P["latest"]):
                     print(paint("2", "pawdit: ainda sem auditorias — sudo pawdit run"))
                 else:
                     g = resolve_group(cfg) or "admin"
@@ -235,7 +236,9 @@ def cmd_doctor(cfg, a):
     except Exception as e:  # noqa: BLE001
         print(f"  {paint('1;31', '✗')} ollama {cfg['ollama_url']} inacessível ({one_line(e, 80)})")
     g = resolve_group(cfg)
-    if os.access(cfg["state_dir"], os.R_OK):
+    if os.access(os.path.join(paths(cfg)["latest"], "run.json"), os.R_OK) or (
+        os.access(cfg["state_dir"], os.R_OK) and not os.path.lexists(paths(cfg)["latest"])
+    ):
         print(f"  {paint('32', '✓')} estado {cfg['state_dir']} legível (grupo {g or '-'})")
     else:
         print(
