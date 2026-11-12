@@ -45,8 +45,17 @@ def cmd_greet(cfg, a):
             return
         run, fs = load_latest(cfg)
         if not run:
-            if os.path.isdir(cfg["state_dir"]) and os.access(cfg["state_dir"], os.R_OK):
-                print(paint("2", "pawdit: ainda sem auditorias — sudo pawdit run"))
+            if os.path.isdir(cfg["state_dir"]):
+                if os.access(cfg["state_dir"], os.R_OK):
+                    print(paint("2", "pawdit: ainda sem auditorias — sudo pawdit run"))
+                else:
+                    g = resolve_group(cfg) or "admin"
+                    print(
+                        paint(
+                            "33",
+                            f"pawdit: sem acesso ao estado — seu usuário precisa do grupo '{g}' (faça logout/login). Veja: pawdit doctor",
+                        )
+                    )
             return
         print(render_greet(cfg, run, fs, term_width()))
     except Exception:  # noqa: BLE001  (o greeting nunca pode quebrar o login)

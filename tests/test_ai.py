@@ -84,3 +84,16 @@ def test_ai_output_is_sanitized(cfg, ollama):
     run, fs = dict(RUN), findings()
     do_ai(cfg, run, fs)
     assert "\x1b" not in fs[0]["ai"] and "\x07" not in fs[0]["ai"]
+
+
+def test_tip_skips_llm_for_builtin_and_blocks_risky(cfg, ollama):
+    from pawdit.ai import gen_tip
+
+    run = {"os": {"name": "x", "kind": "y"}}
+    f = {"tool": "builtin", "title": "t", "detail": "", "hint": "reinicie quando possível"}
+    ollama.responder = lambda b: "boom"
+    assert gen_tip(cfg, run, f) == "reinicie quando possível"
+    assert ollama.calls == [] if hasattr(ollama, "calls") else True
+    g = {"tool": "lynis", "title": "t", "detail": "", "hint": "atualize o kernel"}
+    ollama.responder = lambda b: "Executar sudo shutdown -h now"
+    assert gen_tip(cfg, run, g) == "atualize o kernel"

@@ -120,7 +120,20 @@ def fallback_brief(findings, run):
     return {"resumo": resumo, "dicas": dicas}
 
 
+_RISKY = re.compile(
+    r"shutdown|poweroff|halt\b|rm\s+-rf|mkfs|\bdd\b|chmod\s+-R\s+777|--force|curl[^|]*\|\s*(ba)?sh", re.I
+)
+
+
 def gen_tip(cfg, run, f):
+    # Our own checks already carry a precise, safe hint: no need to spend CPU (or risk a wrong answer) on them.
+    if f["tool"] == "builtin" and f.get("hint"):
+        return cut_words(f["hint"], 56)
+    txt = _gen_tip_llm(cfg, run, f)
+    return cut_words(f["hint"], 56) if f.get("hint") and _RISKY.search(txt) else txt
+
+
+def _gen_tip_llm(cfg, run, f):
     txt = ollama_chat(
         cfg,
         TIP_TMPL.format(
