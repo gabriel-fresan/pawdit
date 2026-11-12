@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 
-from .config import paths
+from .config import paths, resolve_group
 from .report import render_report
 from .util import die, jload, jsave
 
@@ -15,6 +15,7 @@ def write_run(rdir, run, findings):
 
 
 def secure_tree(root, group):
+    """State is group-accessible (rw): the group is the admin group (wheel/sudo), which already has root via sudo."""
     gid = None
     if group:
         try:
@@ -28,10 +29,10 @@ def secure_tree(root, group):
             p = os.path.join(dp, name)
             if os.path.islink(p):
                 continue
-            os.chmod(p, 0o750 if os.path.isdir(p) else 0o640)
+            os.chmod(p, 0o2770 if os.path.isdir(p) else 0o660)
             if gid is not None:
                 os.chown(p, 0, gid)
-    os.chmod(root, 0o750)
+    os.chmod(root, 0o2770)  # setgid: arquivos novos herdam o grupo
     if gid is not None:
         os.chown(root, 0, gid)
 
@@ -46,5 +47,8 @@ def load_latest(cfg):
 def need_latest(cfg):
     run, fs = load_latest(cfg)
     if not run:
-        die("nenhuma auditoria encontrada (ou sem permissão de leitura). Rode: sudo pawdit run")
+        P = paths(cfg)
+        if os.path.isdir(P["state"]) and not os.access(P["state"], os.R_OK):
+            die(f"sem permissão em {P['state']}: seu usuário precisa estar no grupo '{resolve_group(cfg) or 'admin'}'")
+        die("nenhuma auditoria encontrada. Rode: sudo pawdit run")
     return run, fs

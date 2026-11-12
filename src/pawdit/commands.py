@@ -8,7 +8,7 @@ import sys
 from . import __version__
 from .ai import do_ai, gen_fix
 from .audit import run_audit
-from .config import paths
+from .config import paths, resolve_group
 from .greet import render_greet
 from .models import SEV, SEV_COLOR
 from .report import fmt_finding
@@ -21,17 +21,21 @@ def cmd_run(cfg, a):
 
 
 def cmd_ai(cfg, a):
-    if os.geteuid() != 0 and not os.environ.get("PAWDIT_ALLOW_USER"):
-        die("rode como root: sudo pawdit ai")
+    """Regenerate AI texts. Needs write access to the state dir (root or the admin group), not a full audit."""
+    P = paths(cfg)
+    if not os.access(P["state"], os.W_OK):
+        die(f"sem escrita em {P['state']}: use sudo ou entre no grupo '{resolve_group(cfg) or 'admin'}'")
+    os.umask(0o007)  # new files stay group-accessible
     if a.model:
         cfg["model"] = a.model
     if a.max:
         cfg["max_ai_findings"] = a.max
     run, fs = need_latest(cfg)
-    rdir = os.path.realpath(paths(cfg)["latest"])
+    rdir = os.path.realpath(P["latest"])
     do_ai(cfg, run, fs, checkpoint=lambda: write_run(rdir, run, fs))
     write_run(rdir, run, fs)
-    secure_tree(paths(cfg)["state"], cfg.get("state_group"))
+    if os.geteuid() == 0:
+        secure_tree(P["state"], resolve_group(cfg))
 
 
 def cmd_greet(cfg, a):
@@ -181,4 +185,10 @@ def cmd_doctor(cfg, a):
         )
     except Exception as e:  # noqa: BLE001
         print(f"  ✗ ollama {cfg['ollama_url']} inacessível ({one_line(e, 80)})")
-    print(f"  estado: {cfg['state_dir']} ({'legível' if os.access(cfg['state_dir'], os.R_OK) else 'sem acesso'})")
+    g = resolve_group(cfg)
+    if os.access(cfg["state_dir"], os.R_OK):
+        print(f"  ✓ estado {cfg['state_dir']} legível (grupo {g or '-'})")
+    else:
+        print(
+            f"  ✗ estado {cfg['state_dir']} sem acesso — adicione seu usuário ao grupo '{g or 'admin'}' (sudo usermod -aG {g or 'GRUPO'} $USER)"
+        )

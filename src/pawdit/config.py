@@ -15,7 +15,7 @@ except ModuleNotFoundError:  # Python < 3.11
 
 DEFAULTS = {
     "state_dir": "/var/lib/pawdit",
-    "state_group": "wheel",  # grupo que pode ler os relatórios (0640)
+    "state_group": "auto",  # grupo que lê/escreve o estado: auto = wheel ou sudo (o que existir)
     "ollama_url": "http://127.0.0.1:11434",
     "model": "qwen3:1.7b",
     "ai_timeout": 900,  # segundos por chamada (CPU é lenta)
@@ -57,3 +57,21 @@ def paths(cfg):
         "cache": os.path.join(s, "aicache.json"),
         "lock": os.path.join(s, ".lock"),
     }
+
+
+def resolve_group(cfg):
+    """Group allowed to read (and regenerate AI text in) the state dir. ``auto`` picks wheel or sudo."""
+    want = cfg.get("state_group")
+    if want and want != "auto":
+        return want
+    try:
+        import grp
+    except ImportError:
+        return None
+    for name in ("wheel", "sudo"):
+        try:
+            grp.getgrnam(name)
+            return name
+        except KeyError:
+            continue
+    return None

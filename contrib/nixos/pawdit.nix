@@ -70,7 +70,7 @@ in
       loadModels = [ cfg.model ];
     };
 
-    systemd.tmpfiles.rules = [ "d /var/lib/pawdit 0750 root ${cfg.group} -" ];
+    systemd.tmpfiles.rules = [ "d /var/lib/pawdit 2770 root ${cfg.group} -" ];
 
     systemd.services.pawdit = {
       description = "pawdit — auditoria semanal de segurança";

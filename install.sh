@@ -21,7 +21,8 @@ python3 -m venv "$PREFIX" || { echo "python3 -m venv failed (Debian/Ubuntu: apt 
 ln -sf "$PREFIX/bin/pawdit" /usr/local/bin/pawdit
 [[ -f /etc/pawdit.toml ]] || install -Dm644 contrib/pawdit.toml.example /etc/pawdit.toml
 install -Dm644 contrib/systemd/pawdit.service contrib/systemd/pawdit.timer -t /etc/systemd/system/
-install -d -m750 /var/lib/pawdit
+GROUP=$(for g in wheel sudo; do getent group "$g" >/dev/null && { echo "$g"; break; }; done || true)
+install -d -m2770 ${GROUP:+-g "$GROUP"} /var/lib/pawdit   # admin group reads reports without sudo
 systemctl daemon-reload
 systemctl enable --now pawdit.timer
 

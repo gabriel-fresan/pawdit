@@ -13,7 +13,7 @@ import types
 from . import __version__
 from .ai import do_ai, fallback_brief
 from .collectors import COLLECTORS
-from .config import paths
+from .config import paths, resolve_group
 from .models import SEV
 from .store import load_latest, secure_tree, write_run
 from .util import die, log, one_line, os_info, safe_text
@@ -136,5 +136,5 @@ def run_audit(cfg, *, no_ai=False, only=None, model=None, max_ai=None):
         activate()
     for old in sorted(os.listdir(P["hist"]))[: -cfg["history_keep"]]:
         shutil.rmtree(os.path.join(P["hist"], old), ignore_errors=True)
-    secure_tree(P["state"], cfg.get("state_group"))
+    secure_tree(P["state"], resolve_group(cfg))
     log(f"ok — {len(findings)} achados, {len(resolved)} resolvidos, relatório em {P['latest']}/report.md")

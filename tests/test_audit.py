@@ -94,3 +94,34 @@ def test_run_requires_root(cfg, monkeypatch):
     monkeypatch.setattr(os, "geteuid", lambda: 1000)
     with pytest.raises(SystemExit):
         run_audit(cfg, no_ai=True)
+
+
+def test_group_resolution(monkeypatch):
+    import grp
+
+    from pawdit.config import resolve_group
+
+    assert resolve_group({"state_group": "staff"}) == "staff"
+    monkeypatch.setattr(grp, "getgrnam", lambda n: (_ for _ in ()).throw(KeyError(n)) if n == "wheel" else object())
+    assert resolve_group({"state_group": "auto"}) == "sudo"  # Ubuntu has no wheel
+    monkeypatch.setattr(grp, "getgrnam", lambda n: (_ for _ in ()).throw(KeyError(n)))
+    assert resolve_group({"state_group": "auto"}) is None
+
+
+def test_state_is_group_accessible_and_ai_runs_without_root(cfg, fake_collector, ollama, monkeypatch):
+    import argparse
+    import stat
+
+    from pawdit import commands
+
+    monkeypatch.setenv("PAWDIT_ALLOW_USER", "1")
+    cfg.update(tools=["fake"], state_group=None)
+    run_audit(cfg, no_ai=True)
+    st = os.stat(os.path.join(cfg["state_dir"], "latest", "findings.json"))
+    assert stat.S_IMODE(st.st_mode) == 0o660
+    assert stat.S_IMODE(os.stat(cfg["state_dir"]).st_mode) == 0o2770
+    ollama.responder = lambda b: '{"resumo": "ok"}' if "format" in b else "texto"
+    monkeypatch.setattr(os, "geteuid", lambda: 1000)  # a non-root admin-group user
+    commands.cmd_ai(cfg, argparse.Namespace(model=None, max=1))
+    fs = json.load(open(os.path.join(cfg["state_dir"], "latest", "findings.json")))
+    assert fs[0]["ai"] == "texto"

@@ -4,7 +4,7 @@ ollama_url = "http://127.0.0.1:11434"   # mantenha local: os achados vão no pro
 ai_timeout = 900                  # segundos por chamada (CPU é lenta)
 max_ai_findings = 12              # quantos achados ganham "solução" gerada no run semanal
 state_dir = "/var/lib/pawdit"
-state_group = "wheel"             # quem lê os relatórios (0640)
+state_group = "auto"              # grupo que lê os relatórios e roda `pawdit ai` sem sudo (auto = wheel ou sudo)
 greet_width = 64                  # largura máxima do greeting do SSH
 stale_days = 10                   # avisa no login se a última auditoria é mais velha que isso
 expected_ports = [22]             # portas que podem ficar abertas p/ a rede sem virar achado
