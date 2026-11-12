@@ -2,7 +2,7 @@
 
 **P**aranoid **A**dmin's **W**eekly **D**igest of **I**ssues & **T**hreats
 
-A weekly security audit for your Linux box that orchestrates the tools you already trust (Lynis, ssh-audit, AIDE, chkrootkit, vulnix, Trivy, auditd), diffs the result against last week, and has a **small local LLM (<2B, CPU-only, via Ollama) write the summary and fix suggestions**. The short version greets you when you log in over SSH:
+A weekly security audit for your Linux box that orchestrates the tools you already trust (Lynis, ssh-audit, AIDE, chkrootkit, vulnix, Trivy, auditd, Docker/Podman), diffs the result against last week, and has a **small local LLM (<2B, CPU-only, via Ollama) write the summary and fix suggestions**. The short version greets you when you log in over SSH:
 
 ```
  /\_/\  pawdit · home-server · 12/11 (hoje)
@@ -75,7 +75,7 @@ See [SECURITY.md](SECURITY.md). In short: root-run but never executes model outp
 ## Status
 
 Tested: Lynis 3.1.8 (real report fixture), built-in checks, diff logic, AI plumbing against a fake Ollama (34 tests, CI on Python 3.10/3.12/3.13).
-Parsers for AIDE, vulnix, Trivy and ssh-audit are tested on hand-written samples, not yet on captured real output — fixtures welcome. The NixOS module is syntax-checked only.
+Parsers for AIDE, vulnix, Trivy, ssh-audit and Docker are tested on hand-written samples, not yet on captured real output — fixtures welcome. The NixOS module is syntax-checked only.
 
 ## Development
 

@@ -2,7 +2,7 @@
 
 **P**aranoid **A**dmin's **W**eekly **D**igest of **I**ssues & **T**hreats
 
-Auditoria semanal de segurança para Linux: orquestra as ferramentas que você já conhece (Lynis, ssh-audit, AIDE, chkrootkit, vulnix, Trivy, auditd), compara com a semana anterior e usa um **LLM pequeno local (<2B, só CPU, via Ollama) para escrever o resumo e as sugestões de correção**. A versão curta aparece quando você entra por SSH (veja o exemplo no [README](README.md)).
+Auditoria semanal de segurança para Linux: orquestra as ferramentas que você já conhece (Lynis, ssh-audit, AIDE, chkrootkit, vulnix, Trivy, auditd, Docker/Podman), compara com a semana anterior e usa um **LLM pequeno local (<2B, só CPU, via Ollama) para escrever o resumo e as sugestões de correção**. A versão curta aparece quando você entra por SSH (veja o exemplo no [README](README.md)).
 
 ## Como funciona
 
@@ -36,6 +36,6 @@ Reinstalar é seguro (idempotente); `--uninstall` preserva config e histórico.
 
 ## Status e limites
 
-Testado com um report real do Lynis 3.1.8, checagens próprias, lógica de diff e a camada de IA contra um Ollama falso (34 testes). Os parsers de AIDE, vulnix, Trivy e ssh-audit foram testados com amostras escritas à mão: fixtures reais são bem-vindas. O módulo NixOS só teve a sintaxe validada. Mais detalhes em [SECURITY.md](SECURITY.md) e [CONTRIBUTING.md](CONTRIBUTING.md).
+Testado com um report real do Lynis 3.1.8, checagens próprias, lógica de diff e a camada de IA contra um Ollama falso (45 testes). Os parsers de AIDE, vulnix, Trivy, ssh-audit e Docker foram testados com amostras escritas à mão: fixtures reais são bem-vindas. O módulo NixOS só teve a sintaxe validada. Mais detalhes em [SECURITY.md](SECURITY.md) e [CONTRIBUTING.md](CONTRIBUTING.md).
 
 Licença MIT.

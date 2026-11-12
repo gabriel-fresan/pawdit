@@ -8,7 +8,7 @@ let
 
   pawdit = pkgs.python3Packages.buildPythonApplication {
     pname = "pawdit";
-    version = "0.2.0";
+    version = "0.3.0";
     pyproject = true;
     src = lib.cleanSource ../..;
     build-system = [ pkgs.python3Packages.setuptools ];

@@ -10,4 +10,4 @@ stale_days = 10                   # avisa no login se a última auditoria é mai
 expected_ports = [22]             # portas que podem ficar abertas p/ a rede sem virar achado
 ssh_audit_target = "127.0.0.1:22"
 history_keep = 26
-# tools = ["builtin", "lynis", "ssh-audit", "aide", "chkrootkit", "vulnix", "trivy", "auditd"]
+# tools = ["builtin", "lynis", "ssh-audit", "aide", "chkrootkit", "vulnix", "trivy", "auditd", "docker", "docker-images"]
