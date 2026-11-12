@@ -125,3 +125,12 @@ def test_state_is_group_accessible_and_ai_runs_without_root(cfg, fake_collector,
     commands.cmd_ai(cfg, argparse.Namespace(model=None, max=1))
     fs = json.load(open(os.path.join(cfg["state_dir"], "latest", "findings.json")))
     assert fs[0]["ai"] == "texto"
+
+
+def test_fix_overview_extracts_steps(capsys):
+    from pawdit.commands import fix_steps
+
+    ai = "**Por que importa:** x\n\n**Como corrigir:**\n1. faça A\n2. faça B\n\n**Cuidado:** y"
+    assert fix_steps({"ai": ai}) == "1. faça A\n2. faça B"
+    assert "dica" in fix_steps({"ai": "", "hint": "dica"})
+    assert "--gen" in fix_steps({})

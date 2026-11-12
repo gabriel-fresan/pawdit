@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import sys
 
@@ -98,27 +99,37 @@ def cmd_fix(cfg, a):
         if not f:
             die(f"achado '{a.ref}' não encontrado (veja: pawdit list)")
         return show_fix(cfg, run, fs, f, a.gen)
-    # menu compacto: lista os 15 primeiros e pede um número
-    while True:
-        print()
-        for f in fs[:15]:
-            print(
-                f"{f['n']:>3} "
-                + paint(SEV_COLOR[f["sev"]], f"{SEV[f['sev']]:<7}")
-                + f" {trunc(f['title'], term_width() - 14)}"
-            )
-        try:
-            ans = input(paint("35", "número (enter sai) >:3 ")).strip()
-        except (EOFError, KeyboardInterrupt):
-            print()
-            return
-        if not ans:
-            return
-        f = find_one(fs, ans)
-        if f:
-            show_fix(cfg, run, fs, f, a.gen)
-        else:
-            print("não achei esse número")
+    return show_overview(cfg, run, fs, a)
+
+
+def fix_steps(f):
+    """The 'Como corrigir' block of the AI text, or the tool's own hint as fallback."""
+    m = re.search(r"\*\*Como corrigir:?\*\*:?\s*(.*?)(?=\n\s*\*\*[^*\n]+:?\*\*|\Z)", f.get("ai") or "", re.S)
+    txt = m.group(1).strip() if m else ""
+    return txt or (f.get("hint") and f"_(sem texto de IA)_ {f['hint']}") or "_(sem sugestão — rode `pawdit fix --gen`)_"
+
+
+def show_overview(cfg, run, fs, a):
+    """All findings with the AI's short fix each, rendered; --gen fills in missing texts (slow on CPU)."""
+    shown = fs[: a.max or 20]
+    if a.gen:
+        todo = [f for f in shown if not f.get("ai")]
+        for i, f in enumerate(todo, 1):
+            log(f"gerando {i}/{len(todo)}: {trunc(f['title'], 50)}")
+            try:
+                f["ai"] = gen_fix(cfg, run["os"], f)
+            except Exception as e:  # noqa: BLE001
+                print(f"IA indisponível: {one_line(e, 160)}", file=sys.stderr)
+                break
+        if todo and os.access(paths(cfg)["state"], os.W_OK):
+            write_run(os.path.realpath(paths(cfg)["latest"]), run, fs)
+    parts = ["# pawdit · soluções\n"]
+    for f in shown:
+        parts.append(f"### #{f['n']} · {SEV[f['sev']]} · {f['title']}\n\n{fix_steps(f)}\n")
+    if len(fs) > len(shown):
+        parts.append(f"_… mais {len(fs) - len(shown)} achados (use `--max`)._\n")
+    parts.append("---\n_Detalhe completo: `pawdit fix N`_")
+    page("\n".join(parts), md=True)
 
 
 def cmd_diff(cfg, a):
