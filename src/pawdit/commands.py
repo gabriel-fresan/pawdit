@@ -6,7 +6,7 @@ import re
 import shutil
 import sys
 
-from . import __version__
+from . import __version__, faces
 from .ai import do_ai, gen_fix
 from .audit import run_audit
 from .config import paths, resolve_group
@@ -71,6 +71,8 @@ def cmd_report(cfg, a):
 
 def cmd_list(cfg, a):
     run, fs = need_latest(cfg)
+    if sys.stdout.isatty():
+        print(faces.banner(faces.level(run["counts"]), f"{len(fs)} achados · score {run.get('score', '-')}"))
     w = term_width()
     for f in fs:
         if a.new and not f.get("new"):
@@ -143,6 +145,9 @@ def show_overview(cfg, run, fs, a):
 
 def cmd_diff(cfg, a):
     run, fs = need_latest(cfg)
+    if sys.stdout.isatty():
+        worst = max([f["sev"] for f in fs if f.get("new")] or [0])
+        print(faces.banner(worst if worst >= 2 else 0, "o que mudou"))
     if run.get("first_run"):
         print("primeira auditoria: ainda não há com o que comparar")
         return
@@ -170,6 +175,8 @@ def cmd_history(cfg, a):
         names = sorted(os.listdir(P["hist"]))
     except OSError:
         die("sem histórico (ou sem permissão)")
+    if sys.stdout.isatty():
+        print(faces.banner(0, "histórico"))
     print(paint("1;36", f"{'data':<17} {'score':>5}  crit alto méd baixo  novos"))
     for n in names[-a.n :]:
         r = jload(os.path.join(P["hist"], n, "run.json"))

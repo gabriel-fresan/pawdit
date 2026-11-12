@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import textwrap
 
+from . import faces
 from .models import SEV_COLOR
 from .util import age_days, paint, trunc
 
@@ -23,9 +24,7 @@ def fit(segments, width):
 def render_greet(cfg, run, fs, width):
     W = max(40, min(width, int(cfg["greet_width"])))
     c = run["counts"]
-    hi, med = int(c["4"]) + int(c["3"]), int(c["2"])
-    face = "°△°" if hi else ("o.o" if med else "^.^")
-    art = [" /\\_/\\  ", f"( {face} ) ", " > ^ <  "]
+    art = faces.big(faces.level(c))
     day = run["ts"][8:10] + "/" + run["ts"][5:7]
     age = age_days(run["ts"])
     head = f"pawdit · {run['host']} · {day} ({'hoje' if age == 0 else f'há {age}d'})"

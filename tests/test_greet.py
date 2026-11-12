@@ -57,5 +57,13 @@ def test_first_run_and_stale_and_no_ai_notes():
 
 def test_face_depends_on_severity():
     calm = make_run(counts={"4": 0, "3": 0, "2": 0, "1": 2, "0": 0})
-    assert "^.^" in render_greet(DEFAULTS, calm, [], 80)
-    assert "°△°" in render_greet(DEFAULTS, make_run(), FS, 80)
+    assert "^˕^" in render_greet(DEFAULTS, calm, [], 80)
+    assert "O˕O" in render_greet(DEFAULTS, make_run(counts={"4": 0, "3": 0, "2": 1, "1": 0, "0": 0}), FS, 80)
+    assert "•᷄˕•᷅" in render_greet(DEFAULTS, make_run(), FS, 80)
+    assert "X˕X" in render_greet(DEFAULTS, make_run(counts={"4": 1, "3": 0, "2": 0, "1": 0, "0": 0}), FS, 80)
+
+
+def test_inline_faces():
+    from pawdit import faces
+
+    assert [faces.inline(n) for n in (0, 2, 3, 4)] == ["/ᐠ ·^ ˕  ^マ", "/ᐠ ·O ˕  Oマ", "/ᐠ ·•᷄ ˕  •᷅マ", "/ᐠ ·X ˕  Xマ"]
