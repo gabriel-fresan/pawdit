@@ -24,7 +24,7 @@ def render_greet(cfg, run, fs, width):
     W = max(40, min(width, int(cfg["greet_width"])))
     c = run["counts"]
     hi, med = int(c["4"]) + int(c["3"]), int(c["2"])
-    face = ">:3" if hi else ("o.o" if med else "^.^")
+    face = "°△°" if hi else ("o.o" if med else "^.^")
     art = [" /\\_/\\  ", f"( {face} ) ", " > ^ <  "]
     day = run["ts"][8:10] + "/" + run["ts"][5:7]
     age = age_days(run["ts"])
