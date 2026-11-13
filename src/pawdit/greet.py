@@ -24,12 +24,15 @@ def fit(segments, width):
 def render_greet(cfg, run, fs, width):
     W = max(40, min(width, int(cfg["greet_width"])))
     c = run["counts"]
-    art = faces.big(faces.level(c))
     day = run["ts"][8:10] + "/" + run["ts"][5:7]
     age = age_days(run["ts"])
+    new_hi = any(f.get("new") and f["sev"] >= 3 for f in fs)
+    mood = faces.mood(c, new_hi, age > int(cfg["stale_days"]), bool(run.get("first_run")))
+    art = faces.big(mood)
+    cc = faces.color(mood)
     head = f"pawdit · {run['host']} · {day} ({'hoje' if age == 0 else f'há {age}d'})"
 
-    line2 = [(art[1], "34")]
+    line2 = [(art[1], cc)]
     if run.get("score") is not None:
         d = run.get("prev_score")
         delta = f" ({run['score'] - d:+d})" if d not in (None, run["score"]) else ""
@@ -39,7 +42,7 @@ def render_greet(cfg, run, fs, width):
 
     novos = sum(1 for f in fs if f.get("new"))
     novos_hi = sum(1 for f in fs if f.get("new") and f["sev"] >= 3)
-    line3 = [(art[2], "34")]
+    line3 = [(art[2], cc)]
     if run.get("first_run"):
         line3.append(("primeira auditoria (baseline)", None))
     else:
@@ -48,7 +51,7 @@ def render_greet(cfg, run, fs, width):
             line3.append((f" (!{novos_hi} altos)", "1;31"))
         line3.append((f" · resolvidos {len(run.get('resolved', []))}", None))
 
-    out = [fit([(art[0], "34"), (head, "1")], W), fit(line2, W), fit(line3, W)]
+    out = [fit([(art[0], cc), (head, "1")], W), fit(line2, W), fit(line3, W)]
     if age > int(cfg["stale_days"]):
         out.append(fit([(f"⚠ auditoria com {age} dias — o timer está rodando?", "33")], W))
 

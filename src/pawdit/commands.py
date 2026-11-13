@@ -73,7 +73,12 @@ def cmd_report(cfg, a):
 def cmd_list(cfg, a):
     run, fs = need_latest(cfg)
     if sys.stdout.isatty():
-        print(faces.banner(faces.level(run["counts"]), f"{len(fs)} achados · score {run.get('score', '-')}"))
+        print(
+            faces.banner(
+                faces.mood(run["counts"], any(f.get("new") and f["sev"] >= 3 for f in fs)),
+                f"{len(fs)} achados · score {run.get('score', '-')}",
+            )
+        )
     w = term_width()
     for f in fs:
         if a.new and not f.get("new"):
@@ -147,8 +152,9 @@ def show_overview(cfg, run, fs, a):
 def cmd_diff(cfg, a):
     run, fs = need_latest(cfg)
     if sys.stdout.isatty():
-        worst = max([f["sev"] for f in fs if f.get("new")] or [0])
-        print(faces.banner(worst if worst >= 2 else 0, "o que mudou"))
+        news = [f["sev"] for f in fs if f.get("new")]
+        cnt = {str(s): news.count(s) for s in range(5)}
+        print(faces.banner(faces.mood(cnt, bool(cnt["3"])), "o que mudou"))
     if run.get("first_run"):
         print("primeira auditoria: ainda não há com o que comparar")
         return
@@ -177,7 +183,7 @@ def cmd_history(cfg, a):
     except OSError:
         die("sem histórico (ou sem permissão)")
     if sys.stdout.isatty():
-        print(faces.banner(0, "histórico"))
+        print(faces.banner("ok", "histórico"))
     print(paint("1;36", f"{'data':<17} {'score':>5}  crit alto méd baixo  novos"))
     for n in names[-a.n :]:
         r = jload(os.path.join(P["hist"], n, "run.json"))
@@ -216,8 +222,8 @@ def cmd_doctor(cfg, a):
     import urllib.request
 
     print(
-        paint("1;35", f"pawdit {__version__}")
-        + f" >:3 python {sys.version.split()[0]} · {os_info()['name']} ({os_info()['kind']})"
+        faces.banner("ok", f"pawdit {__version__}")
+        + f" python {sys.version.split()[0]} · {os_info()['name']} ({os_info()['kind']})"
     )
     for t in ("lynis", "ssh-audit", "aide", "chkrootkit", "vulnix", "trivy", "aureport", "docker", "podman"):
         p = shutil.which(t)

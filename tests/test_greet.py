@@ -57,13 +57,43 @@ def test_first_run_and_stale_and_no_ai_notes():
 
 def test_face_depends_on_severity():
     calm = make_run(counts={"4": 0, "3": 0, "2": 0, "1": 2, "0": 0})
-    assert "^˕^" in render_greet(DEFAULTS, calm, [], 80)
-    assert "O˕O" in render_greet(DEFAULTS, make_run(counts={"4": 0, "3": 0, "2": 1, "1": 0, "0": 0}), FS, 80)
-    assert "•᷄˕•᷅" in render_greet(DEFAULTS, make_run(), FS, 80)
-    assert "X˕X" in render_greet(DEFAULTS, make_run(counts={"4": 1, "3": 0, "2": 0, "1": 0, "0": 0}), FS, 80)
+    nothing = make_run(counts={"4": 0, "3": 0, "2": 0, "1": 0, "0": 0})
+    assert "^▾^" in render_greet(DEFAULTS, nothing, [], 80)
+    assert "-▾-" in render_greet(DEFAULTS, calm, [], 80)
+    assert "OꞈO" in render_greet(DEFAULTS, make_run(counts={"4": 0, "3": 0, "2": 1, "1": 0, "0": 0}), FS, 80)
+    assert "•᷄△•᷅" in render_greet(DEFAULTS, make_run(), [], 80)  # high, nothing new
+    assert "°△°" in render_greet(DEFAULTS, make_run(), [{**FS[0], "new": True, "sev": 3}], 80)  # high and new
+    assert "X¬X" in render_greet(DEFAULTS, make_run(counts={"4": 1, "3": 0, "2": 0, "1": 0, "0": 0}), FS, 80)
+    assert "˘▾˘" in render_greet(DEFAULTS, make_run(ts="2020-01-01T00:00:00"), FS, 80)  # stale audit
+    assert "◕▾◕" in render_greet(DEFAULTS, make_run(first_run=True), FS, 80)
 
 
 def test_inline_faces():
     from pawdit import faces
 
-    assert [faces.inline(n) for n in (0, 2, 3, 4)] == ["/ᐠ ·^ ˕  ^マ", "/ᐠ ·O ˕  Oマ", "/ᐠ ·•᷄ ˕  •᷅マ", "/ᐠ ·X ˕  Xマ"]
+    assert [faces.inline(m) for m in ("ok", "low", "medium", "worried", "alarm", "crit")] == [
+        "/ᐠ ·^ ▾  ^マ",
+        "/ᐠ ·- ▾ -マ",
+        "/ᐠ ·O ▾  Oマ",
+        "/ᐠ ·•᷄ ˕  •᷅マ",
+        "/ᐠ  ╥ ▾  ╥マ",
+        "/ᐠ ·X ▾  Xマ",
+    ]
+
+
+def test_help_command_and_flags(capsys):
+    import pytest
+
+    from pawdit.cli import main
+
+    assert main(["help"]) == 0
+    out = capsys.readouterr().out
+    assert "exemplos" in out and "pawdit fix 3" in out and "/ᐠ" in out
+    with pytest.raises(SystemExit) as e:
+        main(["--help"])
+    assert e.value.code == 0 and "exemplos" in capsys.readouterr().out
+    with pytest.raises(SystemExit):
+        main(["fix", "--help"])
+    assert "--gen" in capsys.readouterr().out
+    assert main(["help", "fix"]) == 0 and "--gen" in capsys.readouterr().out
+    assert main(["help", "nada"]) == 0 and "não existe" in capsys.readouterr().err

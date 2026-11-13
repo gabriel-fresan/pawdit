@@ -1,30 +1,53 @@
-"""Cat faces by worst severity: ^ ok · O medium · worried high · X critical. Big (3 lines) and inline variants."""
+"""Cat faces by mood. Big (3-line, greeting) and inline (one-line headers) variants share one table.
+
+Moods, calm to grim: ok ^ · low - · medium O · worried (high) · alarm (high and new) · crit X.
+Extras: sleepy (stale audit) and curious (first run).
+"""
 
 from .models import SEV_COLOR
 from .util import paint
 
-EYES = {0: ("^", "^"), 1: ("^", "^"), 2: ("O", "O"), 3: ("•᷄", "•᷅"), 4: ("X", "X")}
-COLOR = {0: "32", 1: "32", 2: SEV_COLOR[2], 3: SEV_COLOR[3], 4: SEV_COLOR[4]}
+# mood -> (face for the 3-line cat, inline cat, colour)
+MOODS = {
+    "ok": ("^▾^", "/ᐠ ·^ ▾  ^マ", "32"),
+    "low": ("-▾-", "/ᐠ ·- ▾ -マ", "36"),
+    "medium": ("OꞈO", "/ᐠ ·O ▾  Oマ", SEV_COLOR[2]),
+    "worried": ("•᷄△•᷅", "/ᐠ ·•᷄ ˕  •᷅マ", SEV_COLOR[3]),
+    "alarm": ("°△°", "/ᐠ  ╥ ▾  ╥マ", "1;31"),
+    "crit": ("X¬X", "/ᐠ ·X ▾  Xマ", SEV_COLOR[4]),
+    "sleepy": ("˘▾˘", "/ᐠ ·˘ ▾  ˘マ", "2"),
+    "curious": ("◕▾◕", "/ᐠ ·◕ ▾  ◕マ", "35"),
+}
 
 
-def level(counts):
-    """Worst severity present in a ``{"4": n, ...}`` counts dict (low/info count as calm)."""
-    for s in (4, 3, 2):
-        if int(counts.get(str(s), 0)):
-            return s
-    return 0
+def mood(counts, new_high=False, stale=False, first_run=False):
+    """Pick a mood from the severity counts ({"4": n, ...}) plus context flags."""
+    if stale:
+        return "sleepy"
+    if first_run:
+        return "curious"
+    c = {k: int(v) for k, v in counts.items()}
+    if c.get("4"):
+        return "crit"
+    if c.get("3"):
+        return "alarm" if new_high else "worried"
+    if c.get("2"):
+        return "medium"
+    return "low" if c.get("1") else "ok"
 
 
-def big(lvl):
-    le, re_ = EYES[lvl]
-    return [" /\\_/\\  ", f"( {le}˕{re_} ) ", " > ^ <  "]
+def big(m):
+    return [" /\\_/\\  ", f"( {MOODS[m][0]} ) ", " > ^ <  "]
 
 
-def inline(lvl):
-    le, re_ = EYES[lvl]
-    return f"/ᐠ ·{le} ˕  {re_}マ"
+def inline(m):
+    return MOODS[m][1]
 
 
-def banner(lvl, text=""):
+def color(m):
+    return MOODS[m][2]
+
+
+def banner(m, text=""):
     """One-line header for list/diff/history/doctor: coloured inline cat + optional text."""
-    return paint(COLOR[lvl], inline(lvl)) + (" " + paint("1", text) if text else "")
+    return paint(color(m), inline(m)) + (" " + paint("1", text) if text else "")
